@@ -55,7 +55,7 @@ To verify the horizontal stabilizer logic, run the provided Python script:
 ```bash
 python Q9SHIELD_V_3_1.py
 ```
-
+This project is licensed under the GNU General Public License v3.0.
 ## 🚀 Call for Collaboration
 We are looking for researchers and organizations to test the Q9 Shield on physical quantum hardware (IBM Q, Rigetti, IonQ, etc.). If you are interested in implementing this logical layer on physical NISQ devices, we welcome the opportunity to collaborate.
 
