@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q9 PROTOCOL v4.2 - ZEN MODE</title>
+    <style>
+        :root {
+            --bg-color: #020205;
+            --neon-blue: #00f3ff;
+            --neon-gold: #ffd700;
+            --neon-red: #ff2a2a;
+            --neon-green: #00ff55;
+            --glass-panel: rgba(10, 15, 20, 0.90);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* --- LEFT SIDE --- */
+        .sidebar-left {
+            width: 320px;
+            padding: 15px;
+            background: linear-gradient(to right, rgba(0,0,0,0.95), transparent);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(0, 243, 255, 0.1);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        h1 { margin: 0; font-size: 1.4rem; color: var(--neon-blue); letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-blue); }
+        
+        .top-controls { display: flex; gap: 10px; align-items: center; }
+
+        .btn-mini {
+            background: transparent; border: 1px solid #444; color: #888; 
+            font-size: 0.7rem; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+            transition: 0.3s;
+        }
+        .btn-mini:hover { border-color: #fff; color: #fff; }
+        .btn-mini.active { color: var(--neon-blue); border-color: var(--neon-blue); font-weight: bold; }
+
+        h2 { margin: 0; font-size: 0.8rem; color: #666; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
+
+        .panel-box {
+            background: var(--glass-panel);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(5px);
+        }
+
+        .slider-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.7rem; color: #aaa; }
+        input[type=range] { width: 100%; accent-color: var(--neon-blue); cursor: pointer; }
+
+        /* --- TOGGLE SWITCH --- */
+        .switch-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;
+        }
+        .switch-label { font-size: 0.75rem; color: #aaa; }
+        
+        .toggle-switch {
+            position: relative; display: inline-block; width: 40px; height: 20px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-group { display: flex; gap: 10px; }
+        button.main-btn {
+            flex: 1;
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        button.main-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+        button.main-btn.active { background: var(--neon-gold); border-color: var(--neon-gold); color: #000; box-shadow: 0 0 15px var(--neon-gold); }
+        
+        button.danger { border-color: var(--neon-red); color: var(--neon-red); }
+        button.danger:hover { background: var(--neon-red); color: #fff; box-shadow: 0 0 15px var(--neon-red); }
+        
+        button.success { border-color: var(--neon-green); color: var(--neon-green); }
+        button.success:hover { background: var(--neon-green); color: #000; box-shadow: 0 0 15px var(--neon-green); }
+
+        button.demo-btn { border: 1px solid #fff; color: #fff; margin-top: 5px; width: 100%; padding: 8px; background:transparent; cursor:pointer;}
+        button.demo-btn:hover { background: #fff; color: #000; }
+
+        button.auto-on { background: var(--neon-blue); color: #000; box-shadow: 0 0 10px var(--neon-blue); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        /* --- CENTER (3D SCENE) --- */
+        .scene-container {
+            flex-grow: 1;
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #111 0%, #020205 70%);
+        }
+
+        .pivot { position: relative; transform-style: preserve-3d; will-change: transform; }
+        .crystal-ring { position: absolute; transform-style: preserve-3d; will-change: transform; }
+
+        .glitch-active { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .glitch-bg { animation: redFlash 0.5s ease; }
+        
+        @keyframes redFlash { 
+            0%, 100% { background: radial-gradient(circle at center, #111 0%, #020205 70%); } 
+            50% { background: radial-gradient(circle at center, #300 0%, #020205 70%); } 
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0) rotateY(var(--rot)); }
+            20%, 80% { transform: translate3d(4px, 0, 0) rotateY(var(--rot)); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotateY(var(--rot)); }
+            40%, 60% { transform: translate3d(6px, 0, 0) rotateY(var(--rot)); }
+        }
+
+        /* --- CANVAS LAYERS --- */
+        .layer {
+            position: absolute; 
+            width: 160px; height: 160px; 
+            left: -80px; top: -80px;
+            background: transparent;
+            transition: border 0.3s;
+            transform-style: preserve-3d;
+            will-change: transform; 
+            pointer-events: none;
+        }
+        
+        .layer canvas { display: block; width: 100%; height: 100%; }
+
+        .layer.surgery-mode { 
+            border: 2px solid rgba(255, 215, 0, 0.8); 
+            background: rgba(40, 40, 0, 0.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        /* --- TURBÓZOTT FLASH ELEMENT --- */
+        .flash-dot {
+            position: absolute;
+            border-radius: 4px;
+            z-index: 9999;
+            pointer-events: none;
+            will-change: transform, opacity;
+            mix-blend-mode: screen;
+            border: 2px solid #fff;
+        }
+
+        /* --- RIGHT SIDE --- */
+        .sidebar-right {
+            width: 320px;
+            background: rgba(5, 5, 8, 0.95);
+            border-left: 1px solid #333;
+            display: flex; flex-direction: column; z-index: 20;
+        }
+
+        .log-header { padding: 15px; border-bottom: 1px solid #333; background: #000; }
+        .log-container {
+            flex-grow: 1; overflow-y: auto; padding: 10px; font-size: 0.75rem;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .log-container::-webkit-scrollbar { width: 6px; }
+        .log-container::-webkit-scrollbar-track { background: #111; }
+        .log-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        .log-entry {
+            background: #111; border-left: 3px solid #555; padding: 8px;
+            display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .log-entry.error { border-left-color: var(--neon-red); background: rgba(255, 42, 42, 0.1); }
+        .log-entry.fix { border-left-color: var(--neon-green); background: rgba(0, 255, 85, 0.1); }
+        .log-entry.op { border-left-color: var(--neon-gold); background: rgba(255, 215, 0, 0.1); }
+        .log-entry.auto { border-left-color: var(--neon-blue); opacity: 0.8; } 
+        
+        .log-time { color: #666; width: 40px; }
+        .log-info { display: flex; flex-direction: column; flex-grow: 1; padding: 0 10px; }
+        .log-main { font-weight: bold; color: #ddd; }
+        .log-sub { color: #888; }
+        .log-status { font-weight: bold; font-size: 0.7em; }
+        .status-ok { color: var(--neon-green); }
+        .status-warn { color: var(--neon-red); }
+        .status-active { color: var(--neon-gold); }
+        .status-blue { color: var(--neon-blue); }
+
+        .mini-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            width: 200px; height: 200px; margin: 0 auto;
+            gap: 1px; background: #000; border: 1px solid #333;
+            padding: 4px; margin-bottom: 10px; transition: border-color 0.2s;
+        }
+        .mini-cell { background: #111; display: flex; align-items: center; justify-content: center; font-size: 0.7em; color: #555; }
+        
+        .mini-cell.shield-zone { color: var(--neon-green); border: 1px solid #1a1a1a; opacity: 0.4; }
+        .mini-cell.core-zone { color: #fff; background: #222; font-weight: bold; }
+        
+        .mini-cell.error-state { background: var(--neon-red) !important; color: #fff !important; box-shadow: 0 0 15px var(--neon-red); z-index: 10; border-color: #fff !important;}
+        .mini-cell.fix-state { background: var(--neon-green) !important; color: #000 !important; box-shadow: 0 0 15px var(--neon-green); z-index: 10; border-color: #fff !important;}
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-left">
+        <div class="header-row">
+            <h1>Q9 PROTOCOL</h1>
+            <div class="top-controls">
+                <button id="btn-sound" class="btn-mini active" onclick="toggleSound()">🔊 ON</button>
+                <div class="lang-switch" onclick="toggleLanguage()">
+                    <span id="lang-en" class="active">EN</span> | <span id="lang-hu">HU</span>
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 0.7rem; color: #666; margin-bottom: 5px;" data-key="subtitle">LOGICAL LAYER SIMULATION</div>
+        
+        <div class="panel-box" style="border-color: rgba(255, 255, 255, 0.3);">
+            <h2 data-key="auto_title">Automation (Heartbeat)</h2>
+            <button id="btn-auto" class="main-btn" onclick="toggleAuto()" data-key="btn_auto">AUTO-CORRECT: OFF</button>
+            
+            <div class="switch-row">
+                <span class="switch-label" data-key="lbl_noise">NOISE SIMULATION</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chk-noise" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="slider-row" style="margin-top: 10px;">
+                <span data-key="clock_speed">Clock Speed</span> 
+                <span id="val-clock" style="color:var(--neon-blue)">1000ms</span>
+            </div>
+            <input type="range" id="clock" min="100" max="2000" value="1000" oninput="updateClock()">
+        </div>
+
+        <div class="panel-box">
+            <h2 data-key="ctrl_title">System Control</h2>
+            <div class="btn-group">
+                <button id="btn-play" class="main-btn" data-key="btn_play">⏸ PAUSE</button>
+                <button id="btn-gate" class="main-btn" data-key="btn_surgery">SURGERY</button>
+            </div>
+            <button class="demo-btn" onclick="startCinematicDemo()" style="width:100%; margin-top:10px;">🎬 DEMO START (Camera Safe)</button>
+        </div>
+
+        <div class="panel-box">
+            <h2 data-key="view_title">3D Viewport</h2>
+            <div class="slider-row"><span data-key="zoom">Zoom</span> <span id="val-zoom">-1200px</span></div>
+            <input type="range" id="zoom" min="-3000" max="500" value="-1200">
+            <div class="slider-row"><span data-key="tilt">Tilt</span> <span id="val-tilt">30°</span></div>
+            <input type="range" id="tilt" min="-90" max="90" value="30">
+            <div class="slider-row"><span data-key="radius">Radius</span> <span id="val-rad">800px</span></div>
+            <input type="range" id="radius" min="400" max="2000" value="800">
+        </div>
+
+        <div class="panel-box">
+            <h2 data-key="test_title">Manual Injection</h2>
+            <div class="btn-group">
+                <button id="btn-noise" class="main-btn danger" data-key="btn_error">⚠ ERROR</button>
+                <button id="btn-data" class="main-btn success" data-key="btn_fix">✔ CORRECT</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="scene-container" id="scene">
+        <div class="pivot" id="pivot">
+            <div class="crystal-ring" id="ring"></div>
+        </div>
+    </div>
+
+    <div class="sidebar-right">
+        <div class="log-header">
+            <h2 style="color:#fff; border:none; margin:0;" data-key="log_title">DIAGNOSTICS</h2>
+            <div style="font-size:0.7rem; color:#666;" data-key="log_sub">Real-time syndrome measurement:</div>
+        </div>
+        
+        <div style="padding: 10px; border-bottom: 1px solid #333; text-align: center;">
+             <div class="mini-grid" id="mini-grid"></div>
+             <div id="mini-status" style="font-size: 0.8rem; height: 20px; color: var(--neon-blue); font-weight: bold; margin-top: 5px;">SYSTEM STABLE</div>
+        </div>
+
+        <div class="log-container" id="log-list">
+            <div class="log-entry fix">
+                <span class="log-time">SYS</span>
+                <div class="log-info">
+                    <span class="log-main" data-key="log_init">System Boot</span>
+                    <span class="log-sub">Q9 Stabilizer Active</span>
+                </div>
+                <span class="log-status status-ok">OK</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isMuted = false;
+
+        function toggleSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            isMuted = !isMuted;
+            const btn = document.getElementById('btn-sound');
+            if(isMuted) {
+                btn.classList.remove('active');
+                btn.innerHTML = '🔇 OFF';
+            } else {
+                btn.classList.add('active');
+                btn.innerHTML = '🔊 ON';
+            }
+        }
+        
+        function playSound(type) {
+            if (isMuted) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+
+            if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, t);
+                osc.frequency.exponentialRampToValueAtTime(20, t + 0.4);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                osc.start(); osc.stop(t + 0.4);
+            } 
+            else if (type === 'fix') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, t);
+                osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+                osc.start(); osc.stop(t + 0.5);
+            }
+            else if (type === 'pulse') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, t);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.start(); osc.stop(t + 0.1);
+            }
+        }
+
+        const translations = {
+            en: {
+                subtitle: "LOGICAL LAYER SIMULATION", auto_title: "Automation (Heartbeat)", btn_auto: "AUTO-CORRECT: OFF", btn_auto_on: "AUTO-CORRECT: ON", clock_speed: "Clock Speed", ctrl_title: "System Control", btn_play: "⏸ PAUSE", btn_play_go: "▶ PLAY", btn_surgery: "SURGERY", btn_surgery_on: "SURGERY: ACTIVE", view_title: "3D Viewport", zoom: "Zoom", tilt: "Tilt", radius: "Radius", test_title: "Manual Injection", btn_error: "⚠ ERROR", btn_fix: "✔ CORRECT", btn_op: "✔ OPERATION", log_title: "DIAGNOSTICS", log_sub: "Real-time syndrome measurement:", log_init: "System Boot", status_stable: "SYSTEM STABLE", status_error: "BAD QUBIT: ", status_fixed: "STABILIZER RESTORED", status_surgery: "TOPOLOGY OPEN...", log_syndrome: "Syndrome Detected", log_flip: "Bit-Flip Error", log_correct: "Pauli-X Correction", log_fixed: "FIXED", log_op: "Lattice Surgery", log_active: "ACTIVE", log_stab: "Stabilizer Update", log_ok: "OK", lbl_noise: "NOISE SIMULATION"
+            },
+            hu: {
+                subtitle: "LOGIKAI RÉTEG SZIMULÁCIÓ", auto_title: "Automatizálás (Szívverés)", btn_auto: "AUTO-KORREKCIÓ: KI", btn_auto_on: "AUTO-KORREKCIÓ: BE", clock_speed: "Ciklusidő (Clock)", ctrl_title: "Vezérlés", btn_play: "⏸ ÁLLJ", btn_play_go: "▶ LEJÁTSZÁS", btn_surgery: "SEBÉSZET", btn_surgery_on: "SEBÉSZET: AKTÍV", view_title: "3D Nézet", zoom: "Nagyítás", tilt: "Dőlés", radius: "Sugár", test_title: "Manuális Injektálás", btn_error: "⚠ HIBA", btn_fix: "✔ JAVÍT", btn_op: "✔ MŰVELET", log_title: "DIAGNOSZTIKA", log_sub: "Valós idejű szindróma-mérés:", log_init: "Rendszer Indítása", status_stable: "RENDSZER STABIL", status_error: "HIBÁS QUBIT: ", status_fixed: "STABILIZÁTOR HELYREÁLLÍTVA", status_surgery: "TOPOLÓGIA MÓDOSÍTÁSA...", log_syndrome: "Szindróma Detektálva", log_flip: "Bit-Flip Hiba", log_correct: "Pauli-X Korrekció", log_fixed: "JAVÍTVA", log_op: "Rács-sebészet", log_active: "AKTÍV", log_stab: "Stabilizátor Frissítés", log_ok: "OK", lbl_noise: "ZAJ SZIMULÁCIÓ"
+            }
+        };
+
+        let currentLang = 'en';
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'hu' : 'en';
+            document.getElementById('lang-en').className = currentLang === 'en' ? 'active' : '';
+            document.getElementById('lang-hu').className = currentLang === 'hu' ? 'active' : '';
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if(translations[currentLang][key]) el.innerText = translations[currentLang][key];
+            });
+            updateUI();
+        }
+        function t(key) { return translations[currentLang][key] || key; }
+
+        const LAYERS = 97;
+        const SIZE = 7;
+        const MOD = 9;
+        const PISANO = 24;
+
+        const colorMap = {
+            0: null, 1: '#ff00ff', 2: '#9900ff', 3: '#0066ff', 
+            4: '#00ffff', 5: '#ffaa00', 6: '#ff0055', 7: '#aa00ff', 8: '#ffffff' 
+        };
+        const shieldColor = 'rgba(0, 255, 136, 0.2)';
+        const shieldBorder = 'rgba(0, 255, 136, 0.2)';
+
+        let torusData = [];
+        let isPlaying = true;
+        let isSurgeryMode = false;
+        let isAutoMode = false;
+        let autoInterval = null;
+        let rotationAngle = 0;
+        let animationFrame;
+
+        const sceneEl = document.getElementById('scene');
+        const pivotEl = document.getElementById('pivot');
+        const ringEl = document.getElementById('ring');
+        const zoomInput = document.getElementById('zoom');
+        const tiltInput = document.getElementById('tilt');
+        const radInput = document.getElementById('radius');
+        const logList = document.getElementById('log-list');
+        const miniGrid = document.getElementById('mini-grid');
+        const miniStatus = document.getElementById('mini-status');
+        const chkNoise = document.getElementById('chk-noise');
+
+        function initData() {
+            let fib = [0, 1]; for(let i=2; i<PISANO; i++) fib.push((fib[i-1]+fib[i-2])%MOD);
+            let spiral = Array(SIZE).fill().map(()=>Array(SIZE).fill(-1));
+            let r=0, c=0, dr=0, dc=1;
+            for(let i=0; i<SIZE*SIZE; i++){
+                spiral[r][c]=i; let nr=r+dr, nc=c+dc;
+                if(nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && spiral[nr][nc]===-1){ r=nr; c=nc; }
+                else { let tmp=dr; dr=dc; dc=-tmp; r+=dr; c+=dc; }
+            }
+            for(let i=0; i<LAYERS; i++){
+                let layer=[];
+                for(let r=0; r<SIZE; r++){
+                    let row=[];
+                    for(let c=0; c<SIZE; c++){
+                        let idxA = spiral[r][c]; let idxB = spiral[6-r][6-c];
+                        let val = (fib[(idxA+i)%PISANO] + fib[(idxB+i)%PISANO]) % MOD;
+                        if(val===0) val=0; row.push(val);
+                    }
+                    layer.push(row);
+                }
+                torusData.push(layer);
+            }
+            drawMiniGrid(torusData[0], -1, -1, 'none');
+        }
+
+        function buildRing() {
+            ringEl.innerHTML = ''; 
+            const r = parseInt(radInput.value); 
+            const step = 360/LAYERS;
+            const layerSize = 160; 
+            const cellSize = layerSize / SIZE;
+
+            for(let i=0; i<LAYERS; i++){
+                const d = document.createElement('div'); 
+                d.className = 'layer'; 
+                if(isSurgeryMode) d.classList.add('surgery-mode');
+                d.id = `layer-${i}`;
+                d.style.transform = `rotateY(${i*step}deg) translateZ(${r}px) rotateY(90deg)`;
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = layerSize;
+                canvas.height = layerSize;
+                const ctx = canvas.getContext('2d');
+                const data = torusData[i];
+
+                for(let rr=0; rr<SIZE; rr++){
+                    for(let cc=0; cc<SIZE; cc++){
+                        const x = cc * cellSize;
+                        const y = rr * cellSize;
+                        const w = cellSize - 1; const h = cellSize - 1;
+                        const isF = (rr===0||rr===6||cc===0||cc===6);
+                        
+                        if(isF) {
+                            ctx.fillStyle = shieldColor;
+                            ctx.fillRect(x, y, w, h);
+                            ctx.strokeStyle = shieldBorder;
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(x, y, w, h);
+                        } else {
+                            const val = data[rr][cc] % 9;
+                            const color = colorMap[val];
+                            if(color) {
+                                ctx.fillStyle = color;
+                                ctx.globalAlpha = 0.8; 
+                                ctx.fillRect(x, y, w, h);
+                                ctx.globalAlpha = 1.0;
+                            }
+                        }
+                    }
+                }
+                d.appendChild(canvas);
+                ringEl.appendChild(d);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('btn-play').textContent = isPlaying ? t('btn_play') : t('btn_play_go');
+            const btnGate = document.getElementById('btn-gate');
+            btnGate.textContent = isSurgeryMode ? t('btn_surgery_on') : t('btn_surgery');
+            
+            document.querySelectorAll('.layer').forEach(l => {
+                if(isSurgeryMode) l.classList.add('surgery-mode');
+                else l.classList.remove('surgery-mode');
+            });
+
+            document.getElementById('btn-data').textContent = isSurgeryMode ? t('btn_op') : t('btn_fix');
+            const btnAuto = document.getElementById('btn-auto');
+            btnAuto.textContent = isAutoMode ? t('btn_auto_on') : t('btn_auto');
+            btnAuto.className = isAutoMode ? 'auto-on' : '';
+        }
+
+        // --- UPDATED AUTO LOGIC ---
+        function runAutoLoop() {
+            // Check if Noise Switch is ON
+            const allowNoise = chkNoise.checked;
+
+            // 30% chance to generate NOISE only if allowed
+            const isError = allowNoise && (Math.random() > 0.7);
+            
+            if(isError) {
+                triggerEvent('NOISE', true);
+            } else {
+                // Heartbeat
+                triggerEvent('DATA', true);
+            }
+        }
+
+        function updateClock() {
+            const val = document.getElementById('clock').value;
+            const ms = 2100 - val; 
+            document.getElementById('val-clock').innerText = ms + "ms";
+            if(isAutoMode) {
+                clearInterval(autoInterval);
+                autoInterval = setInterval(runAutoLoop, ms);
+            }
+        }
+
+        function toggleAuto() {
+            isAutoMode = !isAutoMode;
+            if(isAutoMode) {
+                const ms = 2100 - document.getElementById('clock').value;
+                autoInterval = setInterval(runAutoLoop, ms);
+            } else {
+                clearInterval(autoInterval);
+            }
+            updateUI();
+        }
+
+        function updateCamera() {
+            const z = zoomInput.value;
+            const t = tiltInput.value;
+            pivotEl.style.transform = `translateZ(${z}px) rotateX(${t}deg)`;
+            document.getElementById('val-zoom').innerText = z + "px";
+            document.getElementById('val-tilt').innerText = t + "°";
+        }
+
+        function animate() {
+            if(isPlaying) { rotationAngle -= 0.3; ringEl.style.transform = `rotateY(${rotationAngle}deg)`; }
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        function addLogEntry(type, coords, msgKey, statusKey, isAuto) {
+            const div = document.createElement('div');
+            div.className = `log-entry ${type} ${isAuto ? 'auto' : ''}`;
+            const msg = t(msgKey); const status = t(statusKey);
+            div.innerHTML = `
+                <span class="log-time">T+</span>
+                <div class="log-info"><span class="log-main">${msg}</span><span class="log-sub">Coord: [${coords[0]},${coords[1]}]</span></div>
+                <span class="log-status ${type==='error'?'status-warn':(type==='op'?'status-active':(type==='fix'?'status-ok':'status-blue'))}">${status}</span>
+            `;
+            logList.insertBefore(div, logList.firstChild);
+            if(logList.children.length > 30) logList.removeChild(logList.lastChild);
+        }
+
+        function drawMiniGrid(data, hR, hC, st) {
+            miniGrid.innerHTML='';
+            miniGrid.style.borderColor = st === 'error' ? 'var(--neon-red)' : '#333';
+            miniGrid.style.boxShadow = st === 'error' ? '0 0 20px var(--neon-red)' : 'none';
+
+            for(let r=0; r<SIZE; r++){
+                for(let c=0; c<SIZE; c++){
+                    const d=document.createElement('div'); d.className='mini-cell'; d.innerText=data[r][c];
+                    const isF=(r===0||r===6||c===0||c===6);
+                    if(isF) d.classList.add('shield-zone'); else d.classList.add('core-zone');
+                    if(r===hR && c===hC) {
+                        if(st==='error') d.classList.add('error-state');
+                        if(st==='fix') d.classList.add('fix-state');
+                    }
+                    miniGrid.appendChild(d);
+                }
+            }
+        }
+
+        function triggerFlash(idx, r, c, color) {
+            const layer = document.getElementById(`layer-${idx}`);
+            if(!layer) return;
+
+            const flashDot = document.createElement('div');
+            flashDot.className = 'flash-dot';
+            
+            const pct = 100 / SIZE;
+            flashDot.style.left = (c * pct) + '%';
+            flashDot.style.top = (r * pct) + '%';
+            flashDot.style.width = pct + '%';
+            flashDot.style.height = pct + '%';
+            
+            flashDot.style.backgroundColor = color;
+            flashDot.style.boxShadow = `0 0 30px 10px ${color}, inset 0 0 10px #fff`; 
+            flashDot.style.borderColor = '#fff';
+            
+            flashDot.style.transform = 'scale(1.2) translateZ(40px)';
+            flashDot.style.opacity = '0.9';
+
+            layer.appendChild(flashDot);
+
+            setTimeout(() => {
+                flashDot.style.transform = 'scale(2.5) translateZ(60px)';
+                flashDot.style.opacity = '0';
+                flashDot.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+            }, 50);
+
+            setTimeout(() => {
+                if(flashDot.parentNode) flashDot.parentNode.removeChild(flashDot);
+            }, 600);
+        }
+
+        function triggerEvent(type, isAuto = false) {
+            let idx = Math.floor(Math.random() * LAYERS);
+            const data = torusData[idx];
+
+            if(type === 'NOISE') {
+                playSound('error');
+                let r = Math.floor(Math.random()*SIZE); let c = Math.floor(Math.random()*SIZE);
+                triggerFlash(idx, r, c, '#ff2a2a'); 
+                drawMiniGrid(data, r, c, 'error');
+                
+                ringEl.classList.add('glitch-active');
+                sceneEl.classList.add('glitch-bg');
+                ringEl.style.setProperty('--rot', `${rotationAngle}deg`);
+
+                addLogEntry('error', [r,c], "log_syndrome", "status_error", isAuto);
+                miniStatus.innerText = t('status_error') + `[${r},${c}]`; miniStatus.style.color="var(--neon-red)";
+                
+                setTimeout(() => {
+                    playSound('fix');
+                    ringEl.classList.remove('glitch-active');
+                    sceneEl.classList.remove('glitch-bg');
+                    triggerFlash(idx, r, c, '#00ff55'); 
+                    drawMiniGrid(data, r, c, 'fix');
+                    addLogEntry('fix', [r,c], "log_correct", "log_fixed", isAuto);
+                    miniStatus.innerText = t('status_fixed'); miniStatus.style.color="var(--neon-green)";
+                }, 800);
+
+            } else {
+                if(isAuto) playSound('pulse');
+                let r, c;
+                if(isSurgeryMode) {
+                    r = 3; c = 3;
+                    triggerFlash(idx, r, c, '#ffd700');
+                    addLogEntry('op', [r,c], "log_op", "log_active", isAuto);
+                    miniStatus.innerText = t('status_surgery'); miniStatus.style.color="var(--neon-gold)";
+                } else {
+                    r = Math.floor(Math.random()*SIZE); 
+                    c = Math.floor(Math.random()*SIZE);
+                    triggerFlash(idx, r, c, '#00f3ff');
+                    addLogEntry('auto', [r,c], "log_stab", "log_ok", isAuto);
+                    miniStatus.innerText = t('status_stable'); miniStatus.style.color="var(--neon-blue)";
+                }
+                drawMiniGrid(data, r, c, 'none');
+            }
+        }
+
+        function startCinematicDemo() {
+            isAutoMode = false; clearInterval(autoInterval);
+            isSurgeryMode = false;
+            // Force noise on for demo
+            chkNoise.checked = true;
+            updateUI();
+            
+            addLogEntry('auto', [0,0], "log_init", "status_stable", false);
+            setTimeout(() => triggerEvent('NOISE'), 2000);
+            setTimeout(() => triggerEvent('NOISE'), 4500);
+            setTimeout(() => {
+                isSurgeryMode = true;
+                updateUI(); 
+                triggerEvent('DATA');
+            }, 7000);
+            setTimeout(() => triggerEvent('DATA'), 9000);
+            setTimeout(() => {
+                isSurgeryMode = false;
+                updateUI();
+                addLogEntry('auto', [0,0], "log_stab", "status_stable", false);
+            }, 12000);
+        }
+
+        // LISTENERS
+        document.getElementById('btn-play').addEventListener('click', ()=>{ isPlaying=!isPlaying; updateUI(); });
+        document.getElementById('btn-gate').addEventListener('click', ()=>{ 
+            isSurgeryMode=!isSurgeryMode; 
+            updateUI(); 
+        });
+        document.getElementById('btn-noise').addEventListener('click', ()=>triggerEvent('NOISE'));
+        document.getElementById('btn-data').addEventListener('click', ()=>triggerEvent('DATA'));
+        
+        zoomInput.addEventListener('input', updateCamera);
+        tiltInput.addEventListener('input', updateCamera);
+        radInput.addEventListener('input', ()=>{ document.getElementById('val-rad').innerText=radInput.value+"px"; buildRing(); });
+
+        initData(); buildRing(); updateCamera(); animate(); updateClock();
+    </script>
+</body>
+</html>

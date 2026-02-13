@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Q9 MATRIX NAVIGATOR v4.2 (SINGULARITY EDITION)</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-main: #ccc;
+            --accent-cyan: #00d2ff;
+            --accent-magenta: #ff00de;
+            --accent-shield: #00ff88;
+            --alert-red: #ff0040;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', 'Consolas', monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden;
+        }
+
+        .main-stage { display: flex; gap: 20px; margin-top: 10px; }
+        .matrix-wrapper { display: flex; flex-direction: column; align-items: center; }
+        .matrix-label { margin-bottom: 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
+
+        .grid-box {
+            display: grid; grid-template-columns: repeat(7, 32px); grid-gap: 2px; padding: 6px;
+            background: #0a0a0a; border: 1px solid #333; border-radius: 4px; transition: 0.3s;
+        }
+
+        .shield-active-grid { border-color: var(--accent-shield) !important; box-shadow: 0 0 25px rgba(0, 255, 136, 0.2); }
+        
+        .cell {
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: bold; border-radius: 2px; border: 1px solid #151515; color: #444;
+            transition: all 0.2s ease;
+        }
+        
+        /* ZONE SPECIFIC STYLES */
+        .core-active { border: 1px solid rgba(255,255,255,0.3) !important; color: #fff !important; }
+        .frame-dimmed { opacity: 0.5; filter: grayscale(1); }
+        
+        .shield-node { background: #000 !important; border: 1px solid var(--accent-shield) !important; color: var(--accent-shield) !important; text-shadow: 0 0 5px var(--accent-shield); }
+        .fix-marker { border: 2px solid #ff0000 !important; box-shadow: 0 0 10px #ff0000; }
+        .center-marker { border: 2px solid #ffffff !important; }
+
+        /* SINGULARITY STYLES */
+        .singularity-void { background: #080808 !important; border-color: #111 !important; color: transparent !important; }
+        .singularity-collapse { background: #1a0005 !important; border-color: #300 !important; color: #500 !important; }
+
+        .controls-area {
+            margin-top: 20px; padding: 20px; background: rgba(20,20,20,0.9); border-radius: 10px;
+            border: 1px solid #444; width: 850px; display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .ctrl-row { display: flex; gap: 30px; justify-content: space-around; }
+        .ctrl-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .ctrl-label { font-size: 10px; color: #888; display: flex; justify-content: space-between; text-transform: uppercase; }
+        .val-disp { color: #fff; font-weight: bold; }
+
+        input[type=range] { width: 100%; height: 4px; background: #333; outline: none; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #888; border-radius: 50%; cursor: pointer; }
+        
+        .mode-selector { display: flex; gap: 10px; justify-content: center; }
+        .mode-btn { padding: 5px 15px; border-radius: 15px; cursor: pointer; background: #111; color: #666; border: 1px solid #333; font-size: 10px; font-weight: bold; }
+        .mode-btn.active { background: #fff; color: #000; }
+        #btnAB.active { background: var(--accent-shield); border-color: var(--accent-shield); }
+        
+        #statusMsg { font-size: 10px; color: var(--accent-cyan); text-align: center; height: 12px; font-family: monospace; font-weight: bold; transition: color 0.3s; }
+        input[type=number] { background: #000; border: 1px solid #444; color: #fff; text-align: center; font-size: 12px; padding: 2px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="letter-spacing: 5px; margin: 0 0 10px 0;">Q9 MATRIX NAVIGATOR v4.2</h2>
+
+    <div class="main-stage">
+        <div class="matrix-wrapper">
+            <div class="matrix-label" style="color:var(--accent-cyan)">SPACE (TÉR)</div>
+            <div id="grid-space" class="grid-box"></div>
+        </div>
+        <div class="matrix-wrapper">
+            <div class="matrix-label" style="color:#fff">REALITY (25-BIT CORE)</div>
+            <div id="grid-main" class="grid-box"></div>
+        </div>
+        <div class="matrix-wrapper">
+            <div class="matrix-label" style="color:var(--accent-magenta)">SHIELD (24-BIT PAJZS)</div>
+            <div id="grid-time" class="grid-box"></div>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="mode-selector">
+            <button id="btnA" class="mode-btn" onclick="setMode('A')">A (SPIRAL)</button>
+            <button id="btnB" class="mode-btn" onclick="setMode('B')">B (MIRROR)</button>
+            <button id="btnAB" class="mode-btn active" onclick="setMode('AB')">A + B (SHIELD ACTIVE)</button>
+        </div>
+
+        <div class="ctrl-row">
+            <div class="ctrl-group">
+                <div class="ctrl-label">CENTER INDEX <span id="centerDisp" class="val-disp">1</span></div>
+                <input type="range" id="centerSlider" min="1" max="49" value="1">
+                <div class="ctrl-label" style="margin-top:10px;">ANCHOR QUBIT (R / C / VAL)</div>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="fixR" min="1" max="7" value="4">
+                    <input type="number" id="fixC" min="1" max="7" value="4">
+                    <input type="number" id="fixVal" min="1" max="49" value="1" style="flex:1;">
+                </div>
+            </div>
+
+            <div class="ctrl-group">
+                <div class="ctrl-label">PHASE SHIFT (Z) <span id="zDisp" class="val-disp">0</span></div>
+                <input type="range" id="zSlider" min="-48" max="48" value="0">
+                <div class="ctrl-label" style="margin-top:10px;">PERMUTATIONS <span id="varDisp" class="val-disp">0</span></div>
+                <input type="range" id="varSlider" min="1" max="1" value="1">
+            </div>
+        </div>
+        <div id="statusMsg">READY</div>
+    </div>
+
+    <script>
+        let currentMode = 'AB';
+        let foundSolutions = [];
+        const lightColors = {0:"#000", 1:"#FF0040", 2:"#00FF80", 3:"#FFFF00", 4:"#0080FF", 5:"#FF00FF", 6:"#00FFFF", 7:"#FF8000", 8:"#8000FF"};
+        
+        // --- AUDIO SYSTEM ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSingularitySound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            // "System Down" hanghatás
+            osc.type = 'sawtooth'; 
+            osc.frequency.setValueAtTime(120, t); 
+            osc.frequency.exponentialRampToValueAtTime(10, t + 0.8); // Mély zuhanás
+            
+            gainNode.gain.setValueAtTime(0.15, t);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(t + 0.8);
+        }
+
+        const fibCycle = [0, 1, 1, 2, 3, 5, 8, 4, 3, 7, 1, 8, 0, 8, 8, 7, 6, 4, 1, 5, 6, 2, 8, 1];
+        
+        const spiralMap = Array(7).fill().map(() => Array(7).fill(-1));
+        let sx=0, sy=0, sdx=1, sdy=0;
+        for(let i=0; i<49; i++) {
+            spiralMap[sy][sx] = i; let nx=sx+sdx, ny=sy+sdy;
+            if(nx<0||nx>=7||ny<0||ny>=7||spiralMap[ny][nx]!==-1) { [sdx, sdy] = [-sdy, sdx]; }
+            sx+=sdx; sy+=sdy;
+        }
+
+        const cellsSpace = Array.from({length:49}, (_,i) => document.getElementById('grid-space').appendChild(Object.assign(document.createElement('div'), {className:'cell'})));
+        const cellsMain = Array.from({length:49}, (_,i) => document.getElementById('grid-main').appendChild(Object.assign(document.createElement('div'), {className:'cell'})));
+        const cellsTime = Array.from({length:49}, (_,i) => document.getElementById('grid-time').appendChild(Object.assign(document.createElement('div'), {className:'cell'})));
+
+        const vectors = [[1,2], [1,3], [1,4], [1,5], [2,1], [2,3], [2,4], [2,6], [3,1], [3,2], [3,5], [3,6], [4,1], [4,2], [4,5], [4,6], [5,1], [5,3], [5,4], [5,6], [6,2], [6,3], [6,4], [6,5], [0,1], [0,2], [0,3], [0,4], [0,5], [0,6]];
+
+        function findAll() {
+            const cv = parseInt(document.getElementById('centerSlider').value) - 1;
+            const fv = parseInt(document.getElementById('fixVal').value) - 1;
+            const fr = parseInt(document.getElementById('fixR').value) - 1;
+            const fc = parseInt(document.getElementById('fixC').value) - 1;
+            
+            const tC1 = Math.floor(cv/7), tC2 = cv%7;
+            const tF1 = Math.floor(fv/7), tF2 = fv%7;
+            
+            let solutions = [];
+            for(let v1 of vectors) {
+                for(let o1=0; o1<7; o1++) {
+                    if(((fr*v1[0] + fc*v1[1] + o1)%7) === tF1 && ((3*v1[0] + 3*v1[1] + o1)%7) === tC1) {
+                        for(let v2 of vectors) {
+                            if((v1[0]*v2[1]-v1[1]*v2[0])%7 === 0) continue;
+                            for(let o2=0; o2<7; o2++) {
+                                if(((fr*v2[0] + fc*v2[1] + o2)%7) === tF2 && ((3*v2[0] + 3*v2[1] + o2)%7) === tC2) {
+                                    solutions.push({v1, o1, v2, o2});
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            const prevCount = foundSolutions.length;
+            foundSolutions = solutions;
+            
+            const statusMsg = document.getElementById('statusMsg');
+            
+            if (solutions.length === 0) {
+                statusMsg.innerText = "SINGULARITY DETECTED - COLLAPSE IMMINENT";
+                statusMsg.style.color = "var(--alert-red)";
+                if (prevCount > 0) playSingularitySound(); 
+            } else {
+                statusMsg.innerText = `${solutions.length} UNIVERSES FOUND`;
+                statusMsg.style.color = "var(--accent-cyan)";
+            }
+
+            const vs = document.getElementById('varSlider');
+            vs.max = Math.max(1, solutions.length);
+            vs.value = 1;
+            vs.disabled = (solutions.length <= 1);
+            
+            render();
+        }
+
+        function setMode(m) { currentMode = m; document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); document.getElementById('btn'+m).classList.add('active'); render(); }
+
+        function render() {
+            const z = parseInt(document.getElementById('zSlider').value);
+            const vi = parseInt(document.getElementById('varSlider').value) - 1;
+            document.getElementById('zDisp').innerText = z;
+            document.getElementById('varDisp').innerText = foundSolutions.length > 0 ? vi + 1 : 0;
+            document.getElementById('centerDisp').innerText = document.getElementById('centerSlider').value;
+
+            // --- SINGULARITY VISUALS ---
+            if(foundSolutions.length === 0) {
+                for(let i=0; i<49; i++) {
+                    // SPACE: Blackout
+                    cellsSpace[i].innerText = "";
+                    cellsSpace[i].className = 'cell singularity-void';
+                    cellsSpace[i].style.backgroundColor = ""; 
+                    cellsSpace[i].style.color = "";
+
+                    // REALITY: Collapse (Red X)
+                    cellsMain[i].innerText = "X";
+                    cellsMain[i].className = 'cell singularity-collapse';
+                    cellsMain[i].style.backgroundColor = "";
+                    cellsMain[i].style.color = "";
+                    
+                    // SHIELD: Dimmed but present (Time persists)
+                    // (Optional: you can collapse this too if you want)
+                }
+                document.getElementById('grid-time').className = 'grid-box'; // Remove active shield glow
+                return;
+            }
+
+            // --- NORMAL RENDER ---
+            const sol = foundSolutions[vi];
+            let shieldIntegrity = true;
+
+            for(let i=0; i<49; i++) {
+                const r = Math.floor(i/7), c = i%7;
+                const isFrame = (r===0||r===6||c===0||c===6);
+
+                // SPACE
+                const val1 = (r*sol.v1[0] + c*sol.v1[1] + sol.o1) % 7;
+                const val2 = (r*sol.v2[0] + c*sol.v2[1] + sol.o2) % 7;
+                const magicVal = 7*val1 + val2 + 1;
+                cellsSpace[i].innerText = magicVal;
+                cellsSpace[i].className = 'cell'; // Reset class
+                cellsSpace[i].style.backgroundColor = lightColors[magicVal%9];
+                cellsSpace[i].style.color = (magicVal%9===0)?"#555":"#000";
+
+                // SHIELD (TIME)
+                const sA = spiralMap[r][c];
+                const sB = spiralMap[6-r][6-c];
+                const fA = fibCycle[((sA+z)%24+24)%24];
+                const fB = fibCycle[((sB+z)%24+24)%24];
+                const tVal = (currentMode==='A')?fA : (currentMode==='B')?fB : (fA+fB)%9;
+                cellsTime[i].innerText = tVal;
+                
+                cellsTime[i].className = 'cell';
+                if(currentMode==='AB' && isFrame && tVal%9===0) {
+                    cellsTime[i].className = 'cell shield-node';
+                } else {
+                    cellsTime[i].style.backgroundColor = lightColors[tVal%9];
+                    cellsTime[i].style.color = "#000";
+                    if(currentMode==='AB' && isFrame && tVal%9!==0) shieldIntegrity = false;
+                }
+
+                // REALITY
+                const mainVal = (magicVal + tVal) % 9;
+                cellsMain[i].innerText = mainVal;
+                cellsMain[i].style.backgroundColor = lightColors[mainVal];
+                cellsMain[i].className = 'cell';
+                if (isFrame) {
+                    cellsMain[i].classList.add('frame-dimmed');
+                } else {
+                    cellsMain[i].classList.add('core-active');
+                }
+
+                [cellsSpace[i], cellsMain[i], cellsTime[i]].forEach(el => {
+                    el.classList.remove('center-marker', 'fix-marker');
+                    if(r===3 && c===3) el.classList.add('center-marker');
+                    if(r===parseInt(document.getElementById('fixR').value)-1 && c===parseInt(document.getElementById('fixC').value)-1) el.classList.add('fix-marker');
+                });
+            }
+            document.getElementById('grid-time').className = 'grid-box' + (shieldIntegrity && currentMode==='AB' ? ' shield-active-grid' : '');
+        }
+
+        document.getElementById('centerSlider').oninput = findAll;
+        document.getElementById('fixVal').onchange = findAll;
+        document.getElementById('fixR').onchange = findAll;
+        document.getElementById('fixC').onchange = findAll;
+        document.getElementById('zSlider').oninput = render;
+        document.getElementById('varSlider').oninput = render;
+        findAll();
+    </script>
+</body>
+</html>
