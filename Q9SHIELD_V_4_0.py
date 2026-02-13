@@ -1,4 +1,3 @@
-
 import random
 
 # ==============================================================================
@@ -21,11 +20,11 @@ class Q9UltimateSystem:
     def __init__(self):
         self.size = 7
         # Fibonacci Modulo 9 Cycle (Pisano Period = 24 steps)
-        # Represents the "Time" dimension.
+        # Represents the "Time" dimension in the spacetime crystal.
         self.fib_cycle = [0, 1, 1, 2, 3, 5, 8, 4, 3, 7, 1, 8, 0, 8, 8, 7, 6, 4, 1, 5, 6, 2, 8, 1]
         
         # Magic Square Vector Seeds (Derived from Q9 Matrix Navigator v4.2)
-        # These vectors define the geometry of the Pan-diagonal Space Lattice.
+        # These vectors define the geometric symmetry of the Pan-diagonal Lattice.
         self.vectors = [[1,2], [1,3], [1,4], [1,5], [2,1], [2,3], [2,4], [2,6], 
                         [3,1], [3,2], [3,5], [3,6], [4,1], [4,2], [4,5], [4,6], 
                         [5,1], [5,3], [5,4], [5,6], [6,2], [6,3], [6,4], [6,5], 
@@ -44,8 +43,8 @@ class Q9UltimateSystem:
     def get_space_grid(self, anchor_r, anchor_c, anchor_val, center_val=1):
         """
         CORE ALGORITHM: Generates the static Space Lattice (Values 1-49).
-        It performs a search to find the specific Pan-diagonal Universe that 
-        satisfies the 'Anchor Point' condition. This Anchor is the SECRET KEY.
+        Performs a search for the specific Pan-diagonal Universe that 
+        satisfies the 'Anchor Point' condition. The Anchor acts as the SECRET KEY.
         """
         cv = center_val - 1
         fv = anchor_val - 1
@@ -54,7 +53,7 @@ class Q9UltimateSystem:
         tC1, tC2 = cv // 7, cv % 7
         tF1, tF2 = fv // 7, fv % 7
 
-        # Brute-force search through vector combinations (The "Key" validation)
+        # Search through vector combinations (Key validation process)
         for v1 in self.vectors:
             for o1 in range(7):
                 if ((fr * v1[0] + fc * v1[1] + o1) % 7 == tF1) and \
@@ -67,16 +66,16 @@ class Q9UltimateSystem:
                             if ((fr * v2[0] + fc * v2[1] + o2) % 7 == tF2) and \
                                ((3 * v2[0] + 3 * v2[1] + o2) % 7 == tC2):
                                 
-                                # VALID UNIVERSE FOUND! Build the 7x7 Grid.
+                                # VALID UNIVERSE FOUND! Build the 7x7 Space Lattice.
                                 grid = [[0]*7 for _ in range(7)]
                                 for r in range(7):
                                     for c in range(7):
                                         val1 = (r * v1[0] + c * v1[1] + o1) % 7
                                         val2 = (r * v2[0] + c * v2[1] + o2) % 7
-                                        # Magic Square Formula (Results in 1-49)
+                                        # Magic Square Formula (Maps results to 1-49)
                                         grid[r][c] = 7 * val1 + val2 + 1
                                 return grid
-        return None # Singularity (No valid grid found for these inputs)
+        return None # Singularity state
 
     def get_time_grids(self, z_shift):
         """Generates the Dynamic Time Layers (A = Spiral, B = Mirror)."""
@@ -90,7 +89,7 @@ class Q9UltimateSystem:
                 val_a = self.fib_cycle[(sA + z_shift) % 24]
                 grid_a[r][c] = val_a
                 
-                # Layer B: Inverse/Mirror Spiral
+                # Layer B: Inverse/Mirror Fibonacci Spiral
                 sB = self.spiral_map[6-r][6-c]
                 val_b = self.fib_cycle[(sB + z_shift) % 24]
                 grid_b[r][c] = val_b
@@ -98,7 +97,7 @@ class Q9UltimateSystem:
         return grid_a, grid_b
 
     def print_matrix(self, name, grid, highlight=None):
-        """Helper function to visualize matrices in the console."""
+        """Helper function for matrix visualization in the console."""
         print(f"\n--- {name} ---")
         for r in range(7):
             line = ""
@@ -106,7 +105,7 @@ class Q9UltimateSystem:
                 val = grid[r][c]
                 s_val = f"{val:2}"
                 if highlight and (r,c) == highlight:
-                    line += f"[{s_val}] " # Highlight the attack point
+                    line += f"[{s_val}] " # Highlight the attack/noise point
                 else:
                     line += f" {s_val}  "
             print(line)
@@ -116,26 +115,26 @@ class Q9UltimateSystem:
         print(">>> SYSTEM STATUS: BOOTING... <<<")
         
         # 1. SETUP PARAMETERS (The Secret Key)
-        # We define the Anchor Point. Only the System knows this.
+        # We define the Anchor Point. Only the System knows these parameters.
         # Anchor: Row 6, Col 7 = Value 43 (Indices are 0-based: 5, 6)
         ANCHOR_R, ANCHOR_C = 5, 6 
         ANCHOR_VAL = 43            
-        Z_SHIFT = 0 # Current Time Phase
+        Z_SHIFT = 0 # Current Temporal Phase
         
         print(f"[SETUP] SECRET ANCHOR: Row {ANCHOR_R+1} / Col {ANCHOR_C+1} = {ANCHOR_VAL}")
 
-        # 2. GENERATION (The Creation)
-        # Generate the hidden Space Lattice (1-49)
+        # 2. GENERATION
+        # Generate the hidden Space Lattice (Static Layer)
         space_grid = self.get_space_grid(ANCHOR_R, ANCHOR_C, ANCHOR_VAL)
         if not space_grid:
             print("[CRITICAL ERROR] Singularity! Invalid Anchor parameters.")
             return
         
-        # Generate the Time Layers (A & B)
+        # Generate the Time Layers (Dynamic Layers)
         time_a, time_b = self.get_time_grids(Z_SHIFT)
         
-        # Calculate REALITY Matrix
-        # Formula: Reality = (Space + TimeA + TimeB) % 9
+        # Calculate REALITY Matrix (Public/Observed state)
+        # Equation: Reality = (Space + TimeA + TimeB) mod 9
         reality_grid = [[0]*7 for _ in range(7)]
         shield_grid = [[0]*7 for _ in range(7)] 
         
@@ -143,32 +142,32 @@ class Q9UltimateSystem:
             for c in range(7):
                 t_val = (time_a[r][c] + time_b[r][c]) % 9
                 shield_grid[r][c] = t_val
-                # THE TRAPDOOR OPERATION: Information is mathematically hidden here.
+                # THE TRAPDOOR OPERATION: Information is mathematically hidden via modulo.
                 reality_grid[r][c] = (space_grid[r][c] + t_val) % 9
 
-        self.print_matrix("REALITY MATRIX (Public View / What the Hacker sees)", reality_grid)
+        self.print_matrix("REALITY MATRIX (Public View / Observable state)", reality_grid)
 
-        # 3. TRAPDOOR DEMONSTRATION (Cryptographic Proof)
+        # 3. TRAPDOOR DEMONSTRATION (Information-Theoretic Security Proof)
         print("\n" + "="*60)
         print(">>> CRYPTOGRAPHIC TRAPDOOR DEMONSTRATION <<<")
         print("="*60)
         
-        # Select a test coordinate (e.g., Row 3, Col 3)
+        # Select a target coordinate for verification
         tr, tc = 2, 2
         obs_val = reality_grid[tr][tc]
         time_val = shield_grid[tr][tc]
         true_space = space_grid[tr][tc]
         
         print(f"Target Coordinate: [{tr+1}, {tc+1}]")
-        print(f"1. Hacker observes Reality (R): {obs_val}")
-        print(f"2. Hacker knows Time (T): {time_val} (Fibonacci is public)")
-        print(f"3. Hacker attempts to reverse-engineer Space (S)...")
+        print(f"1. Attacker observes Reality (R): {obs_val}")
+        print(f"2. Attacker knows Time (T): {time_val} (Fibonacci is public)")
+        print(f"3. Attacker attempts to reverse-engineer Space (S)...")
         print(f"   Equation: ({obs_val} - {time_val}) mod 9 = ?")
         
-        # Calculate all mathematically possible original values (The Trapdoor)
+        # Calculate all possible original values (The Trapdoor ambiguity)
         candidates = []
         base = (obs_val - time_val) % 9
-        if base == 0: base = 9 # Space grid uses 9 instead of 0 for mod matches
+        if base == 0: base = 9 # Adjust for 1-49 lattice range
         if base < 0: base += 9
         
         curr = base
@@ -177,32 +176,30 @@ class Q9UltimateSystem:
             curr += 9
             
         print(f"   POSSIBLE ORIGINAL VALUES: {candidates}")
-        print(f"   ACTUAL VALUE (Known only via Anchor): {true_space}")
+        print(f"   ACTUAL VALUE (Known only via Anchor Key): {true_space}")
         
         if len(candidates) > 1:
             print("   -> CONCLUSION: Information is secure. Reverse-engineering is ambiguous.")
         
-        # 4. ATTACK SIMULATION (Coherence Test)
+        # 4. ATTACK SIMULATION (Quantum Coherence Test)
         target_r, target_c = random.randint(0,6), random.randint(0,6)
         print(f"\n>>> INJECTING NOISE / ATTACK @ [{target_r+1}, {target_c+1}] <<<")
         
-        # Hacker modifies the Reality Matrix
+        # Attacker modifies the Reality Matrix
         old_val = reality_grid[target_r][target_c]
         reality_grid[target_r][target_c] = (old_val + random.randint(1,8)) % 9
         
         self.print_matrix("COMPROMISED REALITY MATRIX", reality_grid, highlight=(target_r, target_c))
 
-        # 5. DEFENSE RESPONSE (Self-Healing)
-        print("\n[DEFENSE] Scanning System Integrity...")
+        # 5. DEFENSE RESPONSE (Self-Healing Logic)
+        print("\n[DEFENSE] Scanning Spacetime Integrity...")
         detected = False
         
         for r in range(7):
             for c in range(7):
-                # Verify Internal Consistency
+                # Verify Coherence between observed state and Anchor-derived expectation
                 known_time = shield_grid[r][c]
                 observed = reality_grid[r][c]
-                
-                # Check against the immutable Space Lattice (Anchor)
                 expected_space = space_grid[r][c]
                 
                 # Verification Logic: (Space + Time) % 9 == Observed?
