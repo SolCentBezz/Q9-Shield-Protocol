@@ -55,14 +55,14 @@ To verify the horizontal stabilizer logic, run the provided Python script:
 ```bash
 python Q9SHIELD_V_3_1.py
 ```
-## 🎮 Interactive Demos
+### 🎮 Interactive Demos
 Experience the Q9 Shield Protocol in your browser without installation.
 
-🌌 Q9 Dashboard (Zen Mode) Real-time visualization of the 25-qubit core and error correction logic.
-
-🚀 Matrix Navigator Explore the 7x7 lattice structure and singularity detection manually.
+* **[🌌 Q9 Dashboard (Zen Mode)](https://SolCentBezz.github.io/Q9-Shield-Protocol/interactive-demo/Q9_Shiled_Protocol_DASHBOARD_4_0.html)** *Real-time visualization of the 25-qubit core and error correction logic.*
+* **[🚀 Matrix Navigator](https://SolCentBezz.github.io/Q9-Shield-Protocol/interactive-demo/Q9_Matrix_navigator_v4_2.html)** *Explore the 7x7 lattice structure and singularity detection manually.*
 
 This project is licensed under the GNU General Public License v3.0.
+
 ## 🚀 Call for Collaboration
 We are looking for researchers and organizations to test the Q9 Shield on physical quantum hardware (IBM Q, Rigetti, IonQ, etc.). If you are interested in implementing this logical layer on physical NISQ devices, we welcome the opportunity to collaborate.
 
