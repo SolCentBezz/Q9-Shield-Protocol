@@ -70,7 +70,7 @@ python Q9SHIELD_V_4_0.py
 For a deep dive into the mathematical foundations, the "Virtual Amber" principle, and the new Trapdoor logic, please refer to the full documentation:
 
 * 📄 **[Technical Whitepaper v3.2 (English)](https://github.com/SolCentBezz/Q9-Shield-Protocol/blob/main/whitepaper/Q9_Shield_Protocol_v3.2_Technical_Whitepaper_ENG.pdf)**
-* 📄 **[Technikai Fehér Könyv v3.2 (Magyar)](https://www.google.com/search?q=whitepaper/Q9_Shield_Protocol_v3.2_Technikai_Feher_Konyv_HUN.pdf)**
+* 📄 **[Technikai Fehér Könyv v3.2 (Magyar)](https://github.com/SolCentBezz/Q9-Shield-Protocol/blob/main/whitepaper/Q9_Shield_Protocol_v3.2_Technikai_Feher_Konyv_HUN.pdf)**
 
 ---
 
